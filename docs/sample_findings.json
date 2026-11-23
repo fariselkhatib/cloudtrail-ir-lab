@@ -1,0 +1,297 @@
+{
+  "findings": [
+    {
+      "rule_id": "CT-001",
+      "title": "Root account activity",
+      "severity": "high",
+      "mitre": "T1078.004",
+      "time": "2026-03-18T15:00:00Z",
+      "actor": "root",
+      "source_ip": "203.0.113.5",
+      "event_name": "ConsoleLogin",
+      "evidence": {
+        "mfa": "Yes"
+      },
+      "event_ids": [
+        "00000000-0000-4000-8000-000000000001"
+      ],
+      "next_step": "Confirm with the account owner. Root should be break-glass only."
+    },
+    {
+      "rule_id": "CT-008",
+      "title": "Long-lived access key used from new IP",
+      "severity": "high",
+      "mitre": "T1078.004",
+      "time": "2026-03-20T02:10:03Z",
+      "actor": "ci-deployer",
+      "source_ip": "198.51.100.23",
+      "event_name": "GetCallerIdentity",
+      "evidence": {
+        "access_key": "AKIAIOSFODNN7EXAMPLE",
+        "previous_ips": [
+          "203.0.113.50"
+        ],
+        "user_agent": "aws-cli/2.15.30 Python/3.11.8 Linux/6.5.0 exe/x86_64.ubuntu.22"
+      },
+      "event_ids": [
+        "00000000-0000-4000-8000-000000000012"
+      ],
+      "next_step": "Compare user agent to the key's normal workload. Deactivate the key if unexplained."
+    },
+    {
+      "rule_id": "CT-006",
+      "title": "Burst of AccessDenied errors (permission enumeration)",
+      "severity": "medium",
+      "mitre": "T1580",
+      "time": "2026-03-20T02:11:00Z",
+      "actor": "ci-deployer",
+      "source_ip": "198.51.100.23",
+      "event_name": "ListUsers",
+      "evidence": {
+        "count": 8,
+        "apis": [
+          "DescribeSnapshots",
+          "DescribeVpcs",
+          "GetAccountAuthorizationDetails",
+          "ListAccessKeys",
+          "ListAttachedUserPolicies",
+          "ListRoles",
+          "ListSecrets",
+          "ListUsers"
+        ],
+        "source_ips": [
+          "198.51.100.23"
+        ]
+      },
+      "event_ids": [
+        "00000000-0000-4000-8000-000000000014",
+        "00000000-0000-4000-8000-000000000015",
+        "00000000-0000-4000-8000-000000000016",
+        "00000000-0000-4000-8000-000000000017",
+        "00000000-0000-4000-8000-000000000018",
+        "00000000-0000-4000-8000-000000000019",
+        "00000000-0000-4000-8000-000000000020",
+        "00000000-0000-4000-8000-000000000021"
+      ],
+      "next_step": "Identify where this credential is being used from and whether that IP is yours."
+    },
+    {
+      "rule_id": "CT-004",
+      "title": "IAM persistence: CreateUser",
+      "severity": "high",
+      "mitre": "T1136.003",
+      "time": "2026-03-20T02:18:02Z",
+      "actor": "ci-deployer",
+      "source_ip": "198.51.100.23",
+      "event_name": "CreateUser",
+      "evidence": {
+        "target": "svc-monitoring"
+      },
+      "event_ids": [
+        "00000000-0000-4000-8000-000000000022"
+      ],
+      "next_step": "Validate against change records. Disable new keys/users if unexplained."
+    },
+    {
+      "rule_id": "CT-005",
+      "title": "Privileged managed policy attached",
+      "severity": "critical",
+      "mitre": "T1098.003",
+      "time": "2026-03-20T02:19:10Z",
+      "actor": "ci-deployer",
+      "source_ip": "198.51.100.23",
+      "event_name": "AttachUserPolicy",
+      "evidence": {
+        "target": "svc-monitoring",
+        "policy": "arn:aws:iam::aws:policy/AdministratorAccess"
+      },
+      "event_ids": [
+        "00000000-0000-4000-8000-000000000023"
+      ],
+      "next_step": "Detach, then review every action taken by the target principal."
+    },
+    {
+      "rule_id": "CT-004",
+      "title": "IAM persistence: CreateAccessKey",
+      "severity": "high",
+      "mitre": "T1098.001",
+      "time": "2026-03-20T02:19:40Z",
+      "actor": "ci-deployer",
+      "source_ip": "198.51.100.23",
+      "event_name": "CreateAccessKey",
+      "evidence": {
+        "target": "svc-monitoring"
+      },
+      "event_ids": [
+        "00000000-0000-4000-8000-000000000024"
+      ],
+      "next_step": "Validate against change records. Disable new keys/users if unexplained."
+    },
+    {
+      "rule_id": "CT-003",
+      "title": "Security logging disabled or modified",
+      "severity": "critical",
+      "mitre": "T1562.008",
+      "time": "2026-03-20T02:21:05Z",
+      "actor": "svc-monitoring",
+      "source_ip": "198.51.100.23",
+      "event_name": "StopLogging",
+      "evidence": {
+        "request": {
+          "name": "arn:aws:cloudtrail:us-east-1:111122223333:trail/lab-trail"
+        }
+      },
+      "event_ids": [
+        "00000000-0000-4000-8000-000000000025"
+      ],
+      "next_step": "Re-enable immediately. Treat everything after this timestamp as potentially unlogged."
+    },
+    {
+      "rule_id": "CT-003",
+      "title": "Security logging disabled or modified",
+      "severity": "critical",
+      "mitre": "T1562.008",
+      "time": "2026-03-20T02:21:40Z",
+      "actor": "svc-monitoring",
+      "source_ip": "198.51.100.23",
+      "event_name": "DeleteDetector",
+      "evidence": {
+        "request": {
+          "detectorId": "12abc34d567e8fa901bc2d34e56789f0"
+        }
+      },
+      "event_ids": [
+        "00000000-0000-4000-8000-000000000026"
+      ],
+      "next_step": "Re-enable immediately. Treat everything after this timestamp as potentially unlogged."
+    },
+    {
+      "rule_id": "CT-007",
+      "title": "Bulk secret retrieval",
+      "severity": "high",
+      "mitre": "T1555.006",
+      "time": "2026-03-20T02:25:00Z",
+      "actor": "svc-monitoring",
+      "source_ip": "198.51.100.23",
+      "event_name": "GetSecretValue",
+      "evidence": {
+        "distinct_secrets": 6,
+        "secrets": [
+          "prod/db/master",
+          "prod/github/deploy-token",
+          "prod/jwt-signing",
+          "prod/smtp",
+          "prod/stripe/api",
+          "staging/db/master"
+        ]
+      },
+      "event_ids": [
+        "00000000-0000-4000-8000-000000000027",
+        "00000000-0000-4000-8000-000000000028",
+        "00000000-0000-4000-8000-000000000029",
+        "00000000-0000-4000-8000-000000000030",
+        "00000000-0000-4000-8000-000000000031",
+        "00000000-0000-4000-8000-000000000032"
+      ],
+      "next_step": "Rotate every listed secret. Assume they are compromised."
+    },
+    {
+      "rule_id": "CT-004",
+      "title": "IAM persistence: CreateLoginProfile",
+      "severity": "high",
+      "mitre": "T1098.001",
+      "time": "2026-03-20T02:30:00Z",
+      "actor": "svc-monitoring",
+      "source_ip": "198.51.100.23",
+      "event_name": "CreateLoginProfile",
+      "evidence": {
+        "target": "svc-monitoring"
+      },
+      "event_ids": [
+        "00000000-0000-4000-8000-000000000033"
+      ],
+      "next_step": "Validate against change records. Disable new keys/users if unexplained."
+    },
+    {
+      "rule_id": "CT-002",
+      "title": "Console login without MFA",
+      "severity": "medium",
+      "mitre": "T1078.004",
+      "time": "2026-03-20T02:31:15Z",
+      "actor": "svc-monitoring",
+      "source_ip": "198.51.100.23",
+      "event_name": "ConsoleLogin",
+      "evidence": {},
+      "event_ids": [
+        "00000000-0000-4000-8000-000000000034"
+      ],
+      "next_step": "Check whether this user should have a console password at all."
+    }
+  ],
+  "principals": [
+    {
+      "principal": "ci-deployer",
+      "events": 19,
+      "errors": 8,
+      "source_ips": [
+        "198.51.100.23",
+        "203.0.113.50"
+      ],
+      "first_seen": "2026-03-19T20:00:00Z",
+      "last_seen": "2026-03-20T02:19:40Z",
+      "top_apis": [
+        "PutObject",
+        "DescribeInstances",
+        "GetCallerIdentity",
+        "ListBuckets",
+        "ListUsers"
+      ]
+    },
+    {
+      "principal": "svc-monitoring",
+      "events": 10,
+      "errors": 0,
+      "source_ips": [
+        "198.51.100.23"
+      ],
+      "first_seen": "2026-03-20T02:21:05Z",
+      "last_seen": "2026-03-20T02:31:15Z",
+      "top_apis": [
+        "GetSecretValue",
+        "StopLogging",
+        "DeleteDetector",
+        "CreateLoginProfile",
+        "ConsoleLogin"
+      ]
+    },
+    {
+      "principal": "alice",
+      "events": 4,
+      "errors": 2,
+      "source_ips": [
+        "203.0.113.60"
+      ],
+      "first_seen": "2026-03-19T14:00:00Z",
+      "last_seen": "2026-03-19T14:07:00Z",
+      "top_apis": [
+        "ConsoleLogin",
+        "DescribeInstances",
+        "ListRoles",
+        "ListUsers"
+      ]
+    },
+    {
+      "principal": "root",
+      "events": 1,
+      "errors": 0,
+      "source_ips": [
+        "203.0.113.5"
+      ],
+      "first_seen": "2026-03-18T15:00:00Z",
+      "last_seen": "2026-03-18T15:00:00Z",
+      "top_apis": [
+        "ConsoleLogin"
+      ]
+    }
+  ]
+}
